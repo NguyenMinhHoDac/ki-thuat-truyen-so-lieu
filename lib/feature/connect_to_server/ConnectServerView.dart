@@ -43,6 +43,7 @@ class _ConnectServerViewState extends State<ConnectServerView> {
               const SizedBox(
                 height: 20,
               ),
+              //192.168.2.8
               TextField(
                 maxLines: 1,
                 decoration: const InputDecoration(

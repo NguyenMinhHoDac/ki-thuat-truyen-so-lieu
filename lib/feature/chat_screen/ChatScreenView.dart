@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:tcp_chat/data/model/Message.dart';
+import 'package:tcp_chat/data/model/TextMessage.dart';
 import 'package:tcp_chat/feature/chat_screen/ChatScreenViewModel.dart';
 import 'package:tcp_chat/feature/connect_to_server/ConnectServerView.dart';
 
@@ -38,11 +38,34 @@ class _ChatScreenViewState extends State<ChatScreenView> {
         title: const Text('Group Chat'),
         leading: IconButton(
           onPressed: () {
-            Get.to(() => const ConnectServerView());
-            (widget.currentUser.userName != null &&
-                    widget.currentUser.userName != '')
-                ? viewModel.userLeaveChat(widget.currentUser)
-                : {};
+            //dialog confirm quit
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('Confirm'),
+                    content: const Text('Do you want to quit?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Get.back();
+                        },
+                        child: const Text('No'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          viewModel.endStream();
+                          Get.offAll(() => const ConnectServerView());
+                          (widget.currentUser.userName != null &&
+                                  widget.currentUser.userName != '')
+                              ? viewModel.userLeaveChat(widget.currentUser)
+                              : {};
+                        },
+                        child: const Text('Yes'),
+                      ),
+                    ],
+                  );
+                });
           },
           icon: const Icon(Icons.arrow_back_ios),
         ),
@@ -122,7 +145,7 @@ class _ChatScreenViewState extends State<ChatScreenView> {
     );
   }
 
-  Widget _messageCard(Message msg) {
+  Widget _messageCard(dynamic msg) {
     return Column(
       crossAxisAlignment: msg.senderName != widget.currentUser.userName
           ? CrossAxisAlignment.start
@@ -146,23 +169,44 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Container(
-                constraints: BoxConstraints(maxWidth: Get.width * 0.7),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    color: msg.senderName != widget.currentUser.userName
-                        ? Colors.grey
-                        : Colors.blue,
-                    borderRadius: BorderRadius.circular(10)),
-                child: Text(
-                  msg.content,
-                  maxLines: 10,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
+            (msg.runtimeType == TextMessage)
+                ? Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Container(
+                      constraints: BoxConstraints(maxWidth: Get.width * 0.7),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                          color: msg.senderName != widget.currentUser.userName
+                              ? Colors.grey
+                              : Colors.blue,
+                          borderRadius: BorderRadius.circular(10)),
+                      child: Text(
+                        msg.content,
+                        maxLines: 10,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Container(
+                      constraints: BoxConstraints(maxWidth: Get.width * 0.7),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                          color: msg.senderName != widget.currentUser.userName
+                              ? Colors.grey
+                              : Colors.blue,
+                          borderRadius: BorderRadius.circular(10)),
+                      child: Text(
+                        msg.fileName,
+                        maxLines: 13,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.white),
+                      ),
+                    ),
+                  ),
             Visibility(
               visible: msg.senderName == widget.currentUser.userName,
               child: const Padding(

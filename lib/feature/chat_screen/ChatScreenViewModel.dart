@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 import 'package:tcp_chat/data/repository/ChatRepository.dart';
 import 'package:tcp_chat/feature/connect_to_server/ConnectServerViewModel.dart';
 
-import '../../data/model/Message.dart';
+import '../../data/model/TextMessage.dart';
 import '../../data/model/User.dart';
 
 class ChatScreenViewModel extends GetxController {
@@ -18,7 +18,7 @@ class ChatScreenViewModel extends GetxController {
   ScrollController chatScrollController = ScrollController();
 
   RxList chattingUser = [].obs;
-  RxList<Message> listMessage = <Message>[].obs;
+  RxList listMessage = [].obs;
 
   ChatRepository chatRepo = Get.find<ChatRepository>();
 
@@ -36,7 +36,7 @@ class ChatScreenViewModel extends GetxController {
 
   void sendMessage(String message) {
     if (message != '' && message != null) {
-      var msg = Message(
+      var msg = TextMessage(
         senderName: chatRepo.currentUser.value.userName!,
         createAt: DateTime.now().toString(),
         content: message,
@@ -60,20 +60,22 @@ class ChatScreenViewModel extends GetxController {
   }
 
   void startStream() {
-    String jsonMessage = '';
+    String jsonData = '';
     socketModel.socket!.listen((data) {
-      jsonMessage += String.fromCharCodes(data);
+      jsonData += String.fromCharCodes(data);
       Future.delayed(const Duration(milliseconds: 200)).then((value) {
         try {
-          // debugPrint('Json: $jsonMessage');
-          listMessage.value.add(Message.fromJson(jsonMessage));
-          // debugPrint('Have a new message');
-          jsonMessage = '';
+          // debugPrint('Json: $jsonData');
+          listMessage.value.add(TextMessage.fromJson(jsonData));
+          // listMessage.value
+          //     .add(FileMessage.fromJson(jsonData.split('_')[2]));
+
+          jsonData = '';
           update();
           scrollDown();
         } catch (e) {
-          debugPrint(
-              "Parse json error because not full package data(just ignore): +${e.toString()}.");
+          // debugPrint("Waiting data...");
+          debugPrint("Waiting data...: +${e.toString()}.");
         }
       });
     }, onError: (error) {}, onDone: () {});
@@ -82,17 +84,24 @@ class ChatScreenViewModel extends GetxController {
   void endStream() {}
 
   Future<void> selectFile() async {
-    FilePickerResult? result =
-        await FilePicker.platform.pickFiles(initialDirectory: '');
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
-      // debugPrint("Selected file: ${result.files.single.path!}");
 
-      String fileName = result.files.first.name;
-      debugPrint("Selected file: ${result.files.first.name}");
-      Uint8List? fileBytes = result.files.first.bytes;
+      //read file bytes
+      File file = File(result.files.single.path!);
+      Uint8List bytes = file.readAsBytesSync();
+      debugPrint("File name: ${file.path.split('/').last}");
+      debugPrint("File data length: ${bytes.length}");
+      //send to socket
+      String msgSent = "file_${file.path.split('/').last}_${bytes.toString()}";
+      debugPrint('Message send!');
+      socketModel.socket!.writeln(msgSent);
 
-      // await socketModel.socket!.addStream(file.openRead());
-      // debugPrint("Data write");
+      // await socketModel.socket!.addStream(file.openRead()).then((value) {
+      //   debugPrint("Send file success");
+      // }, onError: (error) {
+      //   debugPrint("Send file error: ${error.toString()}");
+      // });
     } else {
       // User canceled the picker
     }

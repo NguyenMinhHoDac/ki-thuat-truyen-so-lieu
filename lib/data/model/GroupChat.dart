@@ -1,9 +1,9 @@
-import 'Message.dart';
+import 'TextMessage.dart';
 import 'User.dart';
 
 class GroupChat {
   List<User> listUser;
-  List<Message> listMessage;
+  List<TextMessage> listMessage;
 
   GroupChat(this.listUser, this.listMessage);
 }
