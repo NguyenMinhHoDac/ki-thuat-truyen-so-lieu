@@ -1,29 +1,33 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 class FileMessage {
-  String? senderName;
-  String? createAt = DateTime.now().toString();
-  String? fileName;
-  Uint8List? fileBytes;
+  String fileSenderName;
+  String? fileCreateAt = DateTime.now().toString();
+  String fileName;
+  String fileBytes;
 
-  FileMessage({this.senderName, this.createAt, this.fileName, this.fileBytes});
+  FileMessage(
+      {required this.fileSenderName,
+      this.fileCreateAt,
+      required this.fileName,
+      required this.fileBytes});
 
   static FileMessage fromJson(String jsonString) {
+    // String youtube = jsonString.substring(jsonString.indexOf('['), jsonString.lastIndexOf(']') + 1);
     Map<String, dynamic> map = json.decode(jsonString);
     return FileMessage(
-        senderName: map['senderName'],
+        fileSenderName: map['fileSenderName'],
         fileName: map['fileName'],
-        createAt: map['createAt'],
-        fileBytes: Uint8List.fromList(List.from(map['fileBytes'].split(','))));
+        fileCreateAt: map['fileCreateAt'],
+        fileBytes: map['fileBytes']);
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "senderName": senderName,
+      "fileSenderName": fileSenderName,
       "fileName": fileName,
-      "createAt": createAt,
-      "fileBytes": fileBytes!.toList().toString()
+      "fileCreateAt": fileCreateAt,
+      "fileBytes": fileBytes
     };
   }
 }

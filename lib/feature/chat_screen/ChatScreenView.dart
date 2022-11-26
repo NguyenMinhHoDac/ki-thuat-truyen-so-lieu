@@ -146,31 +146,31 @@ class _ChatScreenViewState extends State<ChatScreenView> {
   }
 
   Widget _messageCard(dynamic msg) {
-    return Column(
-      crossAxisAlignment: msg.senderName != widget.currentUser.userName
-          ? CrossAxisAlignment.start
-          : CrossAxisAlignment.end,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 70),
-          child: Text(msg.senderName),
-        ),
-        Row(
-          mainAxisAlignment: msg.senderName != widget.currentUser.userName
-              ? MainAxisAlignment.start
-              : MainAxisAlignment.end,
-          children: [
-            Visibility(
-              visible: msg.senderName != widget.currentUser.userName,
-              child: const Padding(
-                padding: EdgeInsets.only(left: 20),
-                child: CircleAvatar(
-                  backgroundColor: Colors.black,
-                ),
+    return (msg is TextMessage)
+        ? Column(
+            crossAxisAlignment: msg.senderName != widget.currentUser.userName
+                ? CrossAxisAlignment.start
+                : CrossAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 70),
+                child: Text(msg.senderName),
               ),
-            ),
-            (msg.runtimeType == TextMessage)
-                ? Padding(
+              Row(
+                mainAxisAlignment: msg.senderName != widget.currentUser.userName
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.end,
+                children: [
+                  Visibility(
+                    visible: msg.senderName != widget.currentUser.userName,
+                    child: const Padding(
+                      padding: EdgeInsets.only(left: 20),
+                      child: CircleAvatar(
+                        backgroundColor: Colors.black,
+                      ),
+                    ),
+                  ),
+                  Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Container(
                       constraints: BoxConstraints(maxWidth: Get.width * 0.7),
@@ -186,39 +186,119 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  )
-                : Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Container(
-                      constraints: BoxConstraints(maxWidth: Get.width * 0.7),
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          color: msg.senderName != widget.currentUser.userName
-                              ? Colors.grey
-                              : Colors.blue,
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Text(
-                        msg.fileName,
-                        maxLines: 13,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            decoration: TextDecoration.underline,
-                            decorationColor: Colors.white),
+                  ),
+                  Visibility(
+                    visible: msg.senderName == widget.currentUser.userName,
+                    child: const Padding(
+                      padding: EdgeInsets.only(right: 20),
+                      child: CircleAvatar(
+                        backgroundColor: Colors.black,
                       ),
                     ),
                   ),
-            Visibility(
-              visible: msg.senderName == widget.currentUser.userName,
-              child: const Padding(
-                padding: EdgeInsets.only(right: 20),
-                child: CircleAvatar(
-                  backgroundColor: Colors.black,
-                ),
+                ],
               ),
-            ),
-          ],
-        ),
-      ],
-    );
+            ],
+          )
+        : Column(
+            crossAxisAlignment:
+                msg.fileSenderName != widget.currentUser.userName
+                    ? CrossAxisAlignment.start
+                    : CrossAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 70),
+                child: Text(msg.fileSenderName),
+              ),
+              Row(
+                mainAxisAlignment:
+                    msg.fileSenderName != widget.currentUser.userName
+                        ? MainAxisAlignment.start
+                        : MainAxisAlignment.end,
+                children: [
+                  Visibility(
+                    visible: msg.fileSenderName != widget.currentUser.userName,
+                    child: const Padding(
+                      padding: EdgeInsets.only(left: 20),
+                      child: CircleAvatar(
+                        backgroundColor: Colors.black,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      debugPrint(msg.fileBytes.length.toString());
+                    },
+                    onLongPress: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text('Confirm'),
+                              content: Text(
+                                  'Do you want to download ${msg.fileName}?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Get.back();
+                                  },
+                                  child: const Text('No'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    viewModel.downloadFile(msg);
+                                  },
+                                  child: const Text('Yes'),
+                                ),
+                              ],
+                            );
+                          });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: Get.width * 0.5),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                            color: msg.fileSenderName !=
+                                    widget.currentUser.userName
+                                ? Colors.grey
+                                : Colors.blue,
+                            borderRadius: BorderRadius.circular(10)),
+                        child: Column(
+                          children: [
+                            Image.memory(
+                              viewModel.getBytes(msg.fileBytes),
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            Text(
+                              msg.fileName,
+                              maxLines: 13,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: msg.fileSenderName == widget.currentUser.userName,
+                    child: const Padding(
+                      padding: EdgeInsets.only(right: 20),
+                      child: CircleAvatar(
+                        backgroundColor: Colors.black,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
   }
 }

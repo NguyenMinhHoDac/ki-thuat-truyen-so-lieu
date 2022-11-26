@@ -7,6 +7,8 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 public class TCPServer {
@@ -65,7 +67,7 @@ public class TCPServer {
 				String msg = dataInput.substring(dataInput.indexOf("_") + 1);
 				if (!cmd.equals("userIn"))
 					incoming.close();
-				System.out.println("New member join: " + msg);
+//				System.out.println("New member join: " + msg);
 				this.userJson = msg;
 				this.server.cls.add(this);
 //			for (int j=0; j<this.crsv.cls.size(); j++) {
@@ -86,27 +88,24 @@ public class TCPServer {
 						msg = dataInput.substring(dataInput.indexOf("_") + 1);
 						if (cmd.equals("msg")) {
 							this.server.messageList.add(msg);
+							
 							// send back for other user
 							for (int i = 0; i < this.server.cls.size(); i++) {
 								this.server.cls.get(i).dos.writeBytes(msg);
 							}
 						} else if (cmd.equals("file")) {
+							
 							this.server.files.add(dataInput);
-							var data = dataInput.split("_");
-							String fileName = data[1];
-							String fileBytes = data[2];
+						
+
+							System.out.println("Handle file message.");
+//							System.out.println("File data: " + tempInt.size());
 							
-//							var bytesData = Uint
-//							try (FileOutputStream fos = new FileOutputStream("" + fileName)) {
-//								   fos.write(bytesData);
-//								   //fos.close(); There is no more need for this line since you had created the instance of "fos" inside the try. And this will automatically close the OutputStream
-//								}
+							for (int i = 0; i < this.server.cls.size(); i++) {
+								System.out.println("\nResend file to client.");
+								this.server.cls.get(i).dos.writeBytes(dataInput.split("_")[1]);
+							}
 							
-							System.out.println("Handle file message: " + fileName);
-							System.out.println("File data: " + fileBytes.length());
-//							for (int i = 0; i < this.server.cls.size(); i++) {
-//								this.server.cls.get(i).dos.writeBytes(dataInput);
-//							}
 						} else if (cmd.equals("userOut")) {
 							incoming.close();
 							this.server.cls.remove(this);

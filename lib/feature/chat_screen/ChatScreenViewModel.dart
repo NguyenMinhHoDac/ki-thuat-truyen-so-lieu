@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:tcp_chat/data/model/FileMessage.dart';
 import 'package:tcp_chat/data/repository/ChatRepository.dart';
 import 'package:tcp_chat/feature/connect_to_server/ConnectServerViewModel.dart';
 
@@ -55,27 +56,41 @@ class ChatScreenViewModel extends GetxController {
         curve: Curves.easeIn);
   }
 
+  Uint8List getBytes(String listBytesAsString) {
+    listBytesAsString =
+        listBytesAsString.substring(1, listBytesAsString.length - 1);
+    Uint8List bytes = Uint8List.fromList(
+        listBytesAsString.split(', ').map((e) => int.parse(e)).toList());
+    return bytes;
+  }
+  void downloadFile(FileMessage fileMessage) async {
+    var bytes = getBytes(fileMessage.fileBytes);
+
+  }
+
   void initData() {
     startStream();
   }
 
   void startStream() {
     String jsonData = '';
-    socketModel.socket!.listen((data) {
+    socketModel.socket!.listen((data) async {
       jsonData += String.fromCharCodes(data);
       Future.delayed(const Duration(milliseconds: 200)).then((value) {
         try {
           // debugPrint('Json: $jsonData');
-          listMessage.value.add(TextMessage.fromJson(jsonData));
-          // listMessage.value
-          //     .add(FileMessage.fromJson(jsonData.split('_')[2]));
-
+          if (jsonData.contains('fileBytes')) {
+            listMessage.value.add(FileMessage.fromJson(jsonData));
+          } else if (jsonData.contains('content')) {
+            listMessage.value.add(TextMessage.fromJson(jsonData));
+          }
+        } catch (e) {
+          debugPrint("Waiting data...");
+          // debugPrint("Waiting data...: +${e.toString()}.");
+        } finally {
           jsonData = '';
           update();
           scrollDown();
-        } catch (e) {
-          // debugPrint("Waiting data...");
-          debugPrint("Waiting data...: +${e.toString()}.");
         }
       });
     }, onError: (error) {}, onDone: () {});
@@ -86,21 +101,32 @@ class ChatScreenViewModel extends GetxController {
   Future<void> selectFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
-
       //read file bytes
       File file = File(result.files.single.path!);
       Uint8List bytes = file.readAsBytesSync();
-      debugPrint("File name: ${file.path.split('/').last}");
-      debugPrint("File data length: ${bytes.length}");
-      //send to socket
-      String msgSent = "file_${file.path.split('/').last}_${bytes.toString()}";
-      debugPrint('Message send!');
-      socketModel.socket!.writeln(msgSent);
 
-      // await socketModel.socket!.addStream(file.openRead()).then((value) {
-      //   debugPrint("Send file success");
-      // }, onError: (error) {
-      //   debugPrint("Send file error: ${error.toString()}");
+      debugPrint("File name: ${file.path.split('/').last}");
+      debugPrint("File data length in Uint8List: ${bytes.length}");
+      // debugPrint("File data length in string type: ${bytes.toString().length}");
+      //send to socket
+      var fileMessage = FileMessage(
+          fileSenderName: chatRepo.currentUser.value.userName!,
+          fileCreateAt: DateTime.now().toString(),
+          fileName: file.path.split('/').last,
+          fileBytes: bytes.toString());
+
+      String msgSent = "file_${jsonEncode(fileMessage.toJson())}";
+
+      socketModel.socket!.writeln(msgSent);
+      debugPrint('Message send.');
+      // await Socket.connect(
+      //   socketModel.ipController.text,
+      //   6969,
+      //   timeout: const Duration(seconds: 5),
+      // ).then((value) {
+      //   value.writeln(msgSent);
+      //   debugPrint('Message send.');
+      //   return value;
       // });
     } else {
       // User canceled the picker
