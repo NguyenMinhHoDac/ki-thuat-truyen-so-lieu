@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/state_manager.dart';
@@ -60,47 +61,56 @@ class ServerViewModel extends GetxController {
         clients.add(client);
         log.value.add(
             'Connection from ${client.remoteAddress.address}:${client.remotePort}');
+        List<int> temp = [];
         client.listen((List<int> data) async {
-          try {
-            var msg = String.fromCharCodes(data);
-            // log.value.add("Message: $msg");
-            update();
+          if (data.isNotEmpty) {
+            temp.addAll(data);
+            try {
+              var msg = String.fromCharCodes(temp);
+              // debugPrint(msg);
+              // log.value.add("Message: $msg");
+              update();
 
-            if (msg.contains('userIn_')) {
-              log.value.add('User join.');
-              update();
-            }
-            if (msg.contains('userOut_')) {
-              clients.remove(client);
-              log.value.add('User out.');
-              update();
-            }
-            if (msg.contains('msg_') && msg.contains('content')) {
-              log.value.add('Text message handled.');
-              update();
-              var json = msg.split("_")[1];
-              var txtMsg = TextMessage.fromJson(json);
-              txtMsgs.add(txtMsg);
-              for (var client in clients) {
-                client.writeln(jsonEncode(txtMsg.toJson()));
+              if (msg.contains('userIn_')) {
+                temp.clear();
+                log.value.add('User join.');
+                update();
+              } else if (msg.contains('userOut_')) {
+                temp.clear();
+                clients.remove(client);
+                log.value.add('User out.');
+                update();
+              } else if (msg.contains('msg_') && msg.contains('content')) {
+                temp.clear();
+                log.value.add('Text message handled.');
+                update();
+                var json = msg.split("_")[1];
+                var txtMsg = TextMessage.fromJson(json);
+                txtMsgs.add(txtMsg);
+                for (var client in clients) {
+                  client.writeln(jsonEncode(txtMsg.toJson()));
+                }
+              } else if (msg.contains('file_') &&
+                  msg.contains('fileBytes') &&
+                  msg.contains('{') &&
+                  msg.contains('}')) {
+                temp.clear();
+                log.value.add('File message handled.');
+                update();
+                var json = msg.split("_")[1];
+                var fileMsg = FileMessage.fromJson(json);
+                fileMsgs.add(fileMsg);
+                for (var client in clients) {
+                  client.writeln(jsonEncode(fileMsg.toJson()));
+                }
+              } else {
+                debugPrint("Multi package case, ignore.");
               }
-
-            }
-            if (msg.contains('file_') && msg.contains('fileBytes')) {
-              log.value.add('File message handled.');
+            } catch (error) {
+              log.value.add("Error : $error");
               update();
-              var json = msg.split("_")[1];
-              var fileMsg = FileMessage.fromJson(jsonDecode(json));
-              fileMsgs.add(fileMsg);
-              for (var client in clients) {
-                client.writeln(jsonEncode(fileMsg.toJson()));
-              }
             }
-          } catch (error) {
-            log.value.add("Error : $error");
-            update();
           }
-          update();
         });
       });
     }
@@ -109,5 +119,50 @@ class ServerViewModel extends GetxController {
   Future<void> closeServer() async {
     await serverSocket!.close();
     debugPrint('Server closed');
+  }
+
+  void executeMessage(Socket client, List<int> data) {
+    try {
+      var msg = String.fromCharCodes(data);
+      // debugPrint(msg);
+      // log.value.add("Message: $msg");
+      update();
+
+      if (msg.contains('userIn_')) {
+        log.value.add('User join.');
+        update();
+      } else if (msg.contains('userOut_')) {
+        clients.remove(client);
+        log.value.add('User out.');
+        update();
+      } else if (msg.contains('msg_') && msg.contains('content')) {
+        log.value.add('Text message handled.');
+        update();
+        var json = msg.split("_")[1];
+        var txtMsg = TextMessage.fromJson(json);
+        txtMsgs.add(txtMsg);
+        for (var client in clients) {
+          client.writeln(jsonEncode(txtMsg.toJson()));
+        }
+      } else if (msg.contains('file_') &&
+          msg.contains('fileBytes') &&
+          msg.contains('{') &&
+          msg.contains('}')) {
+        log.value.add('File message handled.');
+        update();
+        var json = msg.split("_")[1];
+        var fileMsg = FileMessage.fromJson(jsonDecode(json));
+        fileMsgs.add(fileMsg);
+        for (var client in clients) {
+          client.writeln(jsonEncode(fileMsg.toJson()));
+        }
+      } else {
+        debugPrint("Multi package case, ignore.");
+      }
+    } catch (error) {
+      log.value.add("Error : $error");
+      update();
+    }
+    update();
   }
 }

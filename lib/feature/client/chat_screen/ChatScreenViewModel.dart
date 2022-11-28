@@ -11,7 +11,6 @@ import 'package:tcp_chat/data/model/User.dart';
 import 'package:tcp_chat/data/repository/ChatRepository.dart';
 import 'package:tcp_chat/feature/client/connect_to_server/ConnectServerViewModel.dart';
 
-
 class ChatScreenViewModel extends GetxController {
   var socketModel = Get.find<ConnectServerViewModel>();
 
@@ -63,9 +62,9 @@ class ChatScreenViewModel extends GetxController {
         listBytesAsString.split(', ').map((e) => int.parse(e)).toList());
     return bytes;
   }
+
   void downloadFile(FileMessage fileMessage) async {
     var bytes = getBytes(fileMessage.fileBytes);
-
   }
 
   void initData() {
@@ -115,8 +114,8 @@ class ChatScreenViewModel extends GetxController {
 
       String msgSent = "file_${jsonEncode(fileMessage.toJson())}";
 
-      // socketModel.socket!.writeln(msgSent);
-      socketModel.socket!.addStream(Stream.value(bytes));
+      socketModel.socket!.writeln(msgSent);
+      // socketModel.socket!.addStream(Stream.value(bytes));
       debugPrint('Message send.');
     } else {
       // User canceled the picker
