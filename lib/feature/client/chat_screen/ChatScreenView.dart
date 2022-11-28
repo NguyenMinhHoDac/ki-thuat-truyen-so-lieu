@@ -179,7 +179,7 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                       decoration: BoxDecoration(
                           color: msg.senderName != widget.currentUser.userName
                               ? Colors.grey
-                              : Colors.blue,
+                              : Colors.orange,
                           borderRadius: BorderRadius.circular(10)),
                       child: Text(
                         msg.content,
@@ -264,7 +264,7 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                             color: msg.fileSenderName !=
                                     widget.currentUser.userName
                                 ? Colors.grey
-                                : Colors.blue,
+                                : Colors.orange,
                             borderRadius: BorderRadius.circular(10)),
                         child: Column(
                           children: [
