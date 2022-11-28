@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../data/model/User.dart';
+import 'package:tcp_chat/data/model/User.dart';
 import '../chat_screen/ChatScreenView.dart';
 import 'ConnectServerViewModel.dart';
 
@@ -15,15 +15,14 @@ class ConnectServerView extends StatefulWidget {
 }
 
 class _ConnectServerViewState extends State<ConnectServerView> {
-  final viewModel = Get.put(ConnectServerViewModel());
+  final viewModel = Get.put(ConnectServerViewModel(), permanent: true);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('TCP Chat App'),
+        title: const Text('CLIENT'),
       ),
       body: GestureDetector(
         onTap: () {

@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -18,8 +19,10 @@ public class TCPServer {
 		ServerSocket theServer;
 		Socket theConnection;
 		try {
-			System.out.println("Server running on port " + port + " localhost.");
 			theServer = new ServerSocket(port);
+			System.out.println(
+					"Server running on port " + port + " localhost and ip " + theServer.getLocalSocketAddress().toString() + ".");
+
 			while (true) {
 				theConnection = theServer.accept();
 				new ThreadedHandler(this, theConnection).start();
@@ -88,24 +91,23 @@ public class TCPServer {
 						msg = dataInput.substring(dataInput.indexOf("_") + 1);
 						if (cmd.equals("msg")) {
 							this.server.messageList.add(msg);
-							
+
 							// send back for other user
 							for (int i = 0; i < this.server.cls.size(); i++) {
 								this.server.cls.get(i).dos.writeBytes(msg);
 							}
 						} else if (cmd.equals("file")) {
-							
+
 							this.server.files.add(dataInput);
-						
 
 							System.out.println("Handle file message.");
 //							System.out.println("File data: " + tempInt.size());
-							
+
 							for (int i = 0; i < this.server.cls.size(); i++) {
 								System.out.println("\nResend file to client.");
 								this.server.cls.get(i).dos.writeBytes(dataInput.split("_")[1]);
 							}
-							
+
 						} else if (cmd.equals("userOut")) {
 							incoming.close();
 							this.server.cls.remove(this);

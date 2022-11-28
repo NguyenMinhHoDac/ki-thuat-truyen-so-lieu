@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
+import 'package:tcp_chat/data/model/User.dart';
 
-import '../../data/model/User.dart';
 
 class ConnectServerViewModel extends GetxController {
   TextEditingController ipController = TextEditingController();

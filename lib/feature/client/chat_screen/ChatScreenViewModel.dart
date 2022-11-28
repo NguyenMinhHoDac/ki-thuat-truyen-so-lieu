@@ -6,11 +6,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tcp_chat/data/model/FileMessage.dart';
+import 'package:tcp_chat/data/model/TextMessage.dart';
+import 'package:tcp_chat/data/model/User.dart';
 import 'package:tcp_chat/data/repository/ChatRepository.dart';
-import 'package:tcp_chat/feature/connect_to_server/ConnectServerViewModel.dart';
+import 'package:tcp_chat/feature/client/connect_to_server/ConnectServerViewModel.dart';
 
-import '../../data/model/TextMessage.dart';
-import '../../data/model/User.dart';
 
 class ChatScreenViewModel extends GetxController {
   var socketModel = Get.find<ConnectServerViewModel>();
@@ -101,13 +101,11 @@ class ChatScreenViewModel extends GetxController {
   Future<void> selectFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
-      //read file bytes
       File file = File(result.files.single.path!);
       Uint8List bytes = file.readAsBytesSync();
 
       debugPrint("File name: ${file.path.split('/').last}");
       debugPrint("File data length in Uint8List: ${bytes.length}");
-      // debugPrint("File data length in string type: ${bytes.toString().length}");
       //send to socket
       var fileMessage = FileMessage(
           fileSenderName: chatRepo.currentUser.value.userName!,
@@ -117,17 +115,9 @@ class ChatScreenViewModel extends GetxController {
 
       String msgSent = "file_${jsonEncode(fileMessage.toJson())}";
 
-      socketModel.socket!.writeln(msgSent);
+      // socketModel.socket!.writeln(msgSent);
+      socketModel.socket!.addStream(Stream.value(bytes));
       debugPrint('Message send.');
-      // await Socket.connect(
-      //   socketModel.ipController.text,
-      //   6969,
-      //   timeout: const Duration(seconds: 5),
-      // ).then((value) {
-      //   value.writeln(msgSent);
-      //   debugPrint('Message send.');
-      //   return value;
-      // });
     } else {
       // User canceled the picker
     }

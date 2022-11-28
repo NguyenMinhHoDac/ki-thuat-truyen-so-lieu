@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tcp_chat/data/model/TextMessage.dart';
-import 'package:tcp_chat/feature/chat_screen/ChatScreenViewModel.dart';
-import 'package:tcp_chat/feature/connect_to_server/ConnectServerView.dart';
+import 'package:tcp_chat/data/model/User.dart';
+import 'package:tcp_chat/feature/client/chat_screen/ChatScreenViewModel.dart';
+import 'package:tcp_chat/feature/client/connect_to_server/ConnectServerView.dart';
 
-import '../../data/model/User.dart';
+
 
 class ChatScreenView extends StatefulWidget {
   final User currentUser;
