@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tcp_chat/data/repository/ChatRepository.dart';
-import 'package:tcp_chat/feature/connect_to_server/ConnectServerView.dart';
+import 'package:tcp_chat/feature/select_type/SelectModeView.dart';
 
 class TCPChatApplication extends StatefulWidget {
   const TCPChatApplication({Key? key}) : super(key: key);
@@ -20,7 +20,7 @@ class _TCPChatApplicationState extends State<TCPChatApplication> {
       theme: ThemeData(
         primarySwatch: Colors.orange,
       ),
-      home: const ConnectServerView(),
+      home: const SelectModeView(),
     );
   }
 }
